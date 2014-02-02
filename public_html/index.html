@@ -12,10 +12,21 @@
     </head>
     <body>
         <div>
-            <label for="seconds">Seconds</label>
-            <input type="number" id="seconds"/>
-            <button type="reset" id="reset">Reset</button>
-            <button id="start">Start</button>
+            <label for="time-input">Seconds</label>
+        </div>
+        <div>
+            <input type="number" id="time-input"/>
+        </div>
+        <div>
+            <span id="hours-left"></span>
+            <span id="minutes-left"></span>
+            <span id="seconds-left"></span>
+        </div>
+        <div>
+            <button id="tick">Tick</button>
+        </div>
+        <div>
+            <button id="stop">Stop</button>
         </div>
     </body>
 </html>
