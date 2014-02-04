@@ -43,6 +43,8 @@ var timer = (function()
         $("#seconds-left").text(sleft);
     };
     
+    //Changing something else  
+    // in the same branch.
     var init = function()
     {
         console.log("Initializing");
