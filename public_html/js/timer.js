@@ -50,6 +50,9 @@ var timer = (function()
         $("#time-input").change(start);
     };
     
+    //Changing something 
+    // in some branch.
+    
      // public API
     return {
         init: init
