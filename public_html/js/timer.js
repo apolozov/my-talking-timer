@@ -27,6 +27,8 @@ var timer = (function()
         return (targetTime - now.getTime());
     };
     
+    // Changing something in the master.
+    
     var stop = function() 
     {
         running = false;
