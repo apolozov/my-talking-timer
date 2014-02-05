@@ -4,6 +4,7 @@ var timer = (function()
     var running = false;
     var inputTime = 0;
     var targetTime;
+    var timeout;
     
     /**
      * Start the ticking.
@@ -17,7 +18,7 @@ var timer = (function()
         inputTime = getInputTime();
         var now = (new Date()).getTime();
         targetTime = now + (inputTime * 1000);
-        render();
+        tick();
     };
     
     var getInputTime = function()
@@ -36,6 +37,7 @@ var timer = (function()
     var stop = function() 
     {
         running = false;
+        window.clearTimeout(timeout);
     };
     
     /**
@@ -45,6 +47,17 @@ var timer = (function()
      */
     var tick = function() 
     {
+        if (running)
+        {
+            if (getTimeLeft() <= 0)
+            {
+                running = false;
+            }
+            else
+            {
+                timeout = window.setTimeout(tick, 1000);
+            }
+        }
         render();
     };
     
@@ -61,7 +74,7 @@ var timer = (function()
     var init = function()
     {
         console.log("Initializing");
-        $("#tick").click(tick);
+        $("#stop").click(stop);
         $("#time-input").change(start);
     };
     
