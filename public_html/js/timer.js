@@ -21,6 +21,12 @@ var timer = (function()
         tick();
     };
     
+    /**
+     * Get the value entered by user as a number.
+     * Massage it as needed.
+     * 
+     * @returns {Number}
+     */
     var getInputTime = function()
     {
         var timeField = $("#time-input");
@@ -61,6 +67,11 @@ var timer = (function()
         render();
     };
     
+    /**
+     * Display the state of the timer.
+     * 
+     * @returns {undefined}
+     */
     var render = function() 
     {
         var sleft = getTimeLeft();
