@@ -1,9 +1,15 @@
+// Module pattern as recommended by jquery
 var timer = (function() 
 {
     var running = false;
     var inputTime = 0;
     var targetTime;
     
+    /**
+     * Start the ticking.
+     * 
+     * @returns {undefined}
+     */
     var start = function() 
     {
         console.log("Starting");
@@ -32,6 +38,11 @@ var timer = (function()
         running = false;
     };
     
+    /**
+     * Interval callback.
+     * 
+     * @returns {undefined}
+     */
     var tick = function() 
     {
         render();
