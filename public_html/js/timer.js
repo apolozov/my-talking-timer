@@ -45,8 +45,10 @@ var timer = (function()
         $("#seconds-left").text(sleft);
     };
     
-    //Changing something else  
-    // in the same branch.
+    /**
+     * Initialize the system, hook up event listeners.
+     * @returns {undefined}
+     */
     var init = function()
     {
         console.log("Initializing");
