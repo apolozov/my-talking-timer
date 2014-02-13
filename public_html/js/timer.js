@@ -94,5 +94,5 @@ var timer = (function()
         init: init
     };
 })();
-
+// Initializing once the page is ready.
 $( document ).ready( timer.init );
