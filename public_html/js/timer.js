@@ -61,7 +61,8 @@ var timer = (function()
             }
             else
             {
-                timeout = window.setTimeout(tick, 1000);
+                var nextTime = getTimeLeft() % 1000;
+                timeout = window.setTimeout(tick, nextTime);
             }
         }
         render();
