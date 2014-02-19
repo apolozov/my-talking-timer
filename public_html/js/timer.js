@@ -58,6 +58,7 @@ var timer = (function()
             if (getTimeLeft() <= 0)
             {
                 running = false;
+                finish();
             }
             else
             {
@@ -66,6 +67,15 @@ var timer = (function()
             }
         }
         render();
+    };
+    
+    var finish = function()
+    {
+        //finalSound = new Audio("../sound/final.mp3");
+        //For some reason $("#sound-final") doesn't work...
+        var finalSound = document.getElementById("sound-0");
+        finalSound.play();
+        //alert("Done: " + getTimeLeft());
     };
     
     /**
