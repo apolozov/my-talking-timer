@@ -62,6 +62,26 @@ var timer = (function()
             }
             else
             {
+                var seconds = Math.round(getTimeLeft()/1000);
+        console.log("Second " + seconds);
+                var say=null;
+                if (seconds === 1)
+                {
+                    say = document.getElementById("sound-1");
+                }
+                else if (seconds === 2)
+                {
+                    say = document.getElementById("sound-2");
+                }
+                else if (seconds === 3)
+                {
+                    //say = document.getElementById("sound-3");
+                    say = new Audio("sound/3.ogg");
+                }
+                if (say !== null)
+                {
+                    say.play();
+                }
                 var nextTime = getTimeLeft() % 1000;
                 timeout = window.setTimeout(tick, nextTime);
             }
