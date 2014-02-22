@@ -86,13 +86,14 @@ var Timer = (function()
     var isRunning = function()
     {
         return running;
-    }
+    };
     
      // public API
     return {
         addCallback: setCallback,
         start: start,
-        stop: stop
+        stop: stop,
+        isRunning: isRunning
     };
 })();
 
@@ -113,6 +114,7 @@ var View = (function()
         sounds[3] = new Audio("sound/3.ogg");
         
         Timer.addCallback(timerCallback);
+        $("#start").click(start);
         $("#stop").click(stop);
         $("#time-input").change(start);
     };
@@ -143,9 +145,12 @@ var View = (function()
      */
     var start = function() 
     {
-        console.log("Starting");
-        inputTime = getInputTime();
-        Timer.start(inputTime);
+        if (! Timer.isRunning())
+        {
+            console.log("Starting");
+            inputTime = getInputTime();
+            Timer.start(inputTime);
+        }
     };
     
     /**
@@ -155,14 +160,22 @@ var View = (function()
      */
     var stop = function()
     {
-        Timer.stop();
-        //Stopping all sounds
-        for (var i in sounds)
+        if (Timer.isRunning())
         {
-            var sound = sounds[i];
-            sound.pause();
-            // Revinding for future
-            sound.currentTime = 0;
+            Timer.stop();
+            //Stopping all sounds
+            for (var i in sounds)
+            {
+                var sound = sounds[i];
+                sound.pause();
+                // Revinding for future
+                sound.currentTime = 0;
+            }
+        }
+        else
+        {
+            $("#time-input").val("");
+            $("#seconds-left").text("");
         }
     };
     
