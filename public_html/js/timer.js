@@ -101,6 +101,7 @@ var View = (function()
 {
     var sounds = [];
     var inputTime = 0;
+    var context = null;
     /**
      * Initialize the view, hook up event listeners.
      * @returns {undefined}
@@ -108,16 +109,46 @@ var View = (function()
     var init = function()
     {
         console.log("Initializing view");
-        sounds[0] = new Audio("sound/0.ogg");
-        sounds[1] = new Audio("sound/1.ogg");
-        sounds[2] = new Audio("sound/2.ogg");
-        sounds[3] = new Audio("sound/3.ogg");
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        context = new AudioContext();
+        
+        loadSound("sound/0.ogg", 0);
+        loadSound("sound/1.ogg", 1);
+        loadSound("sound/2.ogg", 2);
+        loadSound("sound/3.ogg", 3);
         
         Timer.addCallback(timerCallback);
         $("#start").click(start);
         $("#stop").click(stop);
         $("#time-input").change(start);
     };
+    
+    /**
+     * Load audio file from given url and put it into sounds sparse array.
+     * @param {type} url Sound file to load
+     * @param {type} index Where to put the sound.
+     * @returns {undefined}
+     */
+    var loadSound = function(url, index)
+    {
+        var request = new XMLHttpRequest();
+        request.open('GET', url, true);
+        request.responseType = 'arraybuffer';
+
+        // Decode asynchronously
+        request.onload = function() {
+          context.decodeAudioData(request.response, function(buffer) {
+            sounds[index] = buffer;
+          },
+          function()
+          {
+              console.log("Unable to decode " + url);
+          }
+          );
+        };
+        request.send();
+    };
+    
     
     var timerCallback = function(second)
     {
@@ -192,11 +223,14 @@ var View = (function()
     
     var playSound = function(second)
     {
+        var source = context.createBufferSource(); // creates a sound source
         var sound = sounds[second];
-        console.log("Sound: " + sound);
-        if (sound !== undefined && sound !== null)
+        if (typeof sound !== "undefined")
         {
-            sound.play();
+            source.buffer = sound;               // tell the source which sound to play
+            source.connect(context.destination); // connect the source to the context's destination (the speakers)
+            source.start(0);                     // play the source now
+            // note: on older systems, may have to use deprecated noteOn(time);
         }
     };
     
