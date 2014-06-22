@@ -55,7 +55,7 @@ var Timer = (function()
             else
             {
                 var nextTime = msleft % 1000;
-                timeout = window.setTimeout(tick, nextTime);
+                timeout = window.setTimeout(tick, nextTime + 1);
             }
 
             var second = Math.round(msleft/1000);
@@ -102,9 +102,25 @@ var View = (function()
     var sounds = [];
     var inputTime = 0;
     var context = null;
+    
+    /**
+     * Called when HTML us _probably_ loaded.
+     */
+    var loading = function()
+    {
+        //console.log("ready: " + document.readyState);
+        if (document.readyState === "complete")
+        {
+            init();
+        }
+        else
+        {
+            console.log("Postponing init: " + document.readyState);
+            setTimeout(loading, 10);
+        }
+    };
     /**
      * Initialize the view, hook up event listeners.
-     * @returns {undefined}
      */
     var init = function()
     {
@@ -118,16 +134,15 @@ var View = (function()
         loadSound("sound/3.ogg", 3);
         
         Timer.addCallback(timerCallback);
-        $("#start").click(start);
-        $("#stop").click(stop);
-        $("#time-input").change(start);
+        document.getElementById("start").onclick = start;
+        document.getElementById("stop").onclick = stop;
+        document.getElementById("time-input").onchange = start;
     };
     
     /**
      * Load audio file from given url and put it into sounds sparse array.
      * @param {type} url Sound file to load
      * @param {type} index Where to put the sound.
-     * @returns {undefined}
      */
     var loadSound = function(url, index)
     {
@@ -164,15 +179,12 @@ var View = (function()
      */
     var getInputTime = function()
     {
-        var timeField = $("#time-input");
-        var timeString = timeField.val();
+        var timeString = document.getElementById("time-input").value;
         return timeString * 1;
     };
     
     /**
      * Start the ticking.
-     * 
-     * @returns {undefined}
      */
     var start = function() 
     {
@@ -198,15 +210,16 @@ var View = (function()
             for (var i in sounds)
             {
                 var sound = sounds[i];
-                sound.pause();
-                // Revinding for future
+                //TODO: Stop the sound.
+                
+                // Rewinding for future
                 sound.currentTime = 0;
             }
         }
         else
         {
-            $("#time-input").val("");
-            $("#seconds-left").text("");
+            document.getElementById("time-input").value = "";
+            document.getElementById("seconds-left").value = "";
         }
     };
     
@@ -218,7 +231,7 @@ var View = (function()
      */
     var render = function(second) 
     {
-        $("#seconds-left").text(second);
+            document.getElementById("seconds-left").textContent = second;
     };
     
     var playSound = function(second)
@@ -236,9 +249,9 @@ var View = (function()
     
     // public API
     return {
-        init: init
+        loading: loading
     };
 })();
 
 // Initializing once the page is ready.
-$( document ).ready( View.init );
+window.addEventListener("load", View.loading);
