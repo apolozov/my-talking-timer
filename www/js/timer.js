@@ -101,14 +101,12 @@ var View = (function()
 {
     var sounds = [];
     var inputTime = 0;
-    var context = null;
     
     /**
      * Called when HTML us _probably_ loaded.
      */
     var loading = function()
-    {
-        //console.log("ready: " + document.readyState);
+    {        
         if (document.readyState === "complete")
         {
             init();
@@ -125,18 +123,15 @@ var View = (function()
     var init = function()
     {
         console.log("Initializing view");
-        window.AudioContext = window.AudioContext || window.webkitAudioContext;
-        context = new AudioContext();
-        
-        loadSound("sound/0.ogg", 0);
-        loadSound("sound/1.ogg", 1);
-        loadSound("sound/2.ogg", 2);
-        loadSound("sound/3.ogg", 3);
-        
         Timer.addCallback(timerCallback);
         document.getElementById("start").onclick = start;
         document.getElementById("stop").onclick = stop;
         document.getElementById("time-input").onchange = start;
+        
+        loadSound("/android_asset/www/sound/0.ogg", 0);
+        loadSound("/android_asset/www/sound/1.ogg", 1);
+        loadSound("/android_asset/www/sound/2.ogg", 2);
+        loadSound("/android_asset/www/sound/3.ogg", 3);
     };
     
     /**
@@ -146,22 +141,15 @@ var View = (function()
      */
     var loadSound = function(url, index)
     {
-        var request = new XMLHttpRequest();
-        request.open('GET', url, true);
-        request.responseType = 'arraybuffer';
-
-        // Decode asynchronously
-        request.onload = function() {
-          context.decodeAudioData(request.response, function(buffer) {
-            sounds[index] = buffer;
-          },
-          function()
-          {
-              console.log("Unable to decode " + url);
-          }
-          );
-        };
-        request.send();
+        var media = new Media(url,
+        function() {
+            console.log("played " + url);
+        },
+        function() {
+            console.log("Filed to play " + url);
+        }
+        );
+        sounds[index] = media;
     };
     
     
@@ -219,7 +207,7 @@ var View = (function()
         else
         {
             document.getElementById("time-input").value = "";
-            document.getElementById("seconds-left").value = "";
+            document.getElementById("seconds-left").textContent = "";
         }
     };
     
@@ -236,22 +224,19 @@ var View = (function()
     
     var playSound = function(second)
     {
-        var source = context.createBufferSource(); // creates a sound source
         var sound = sounds[second];
         if (typeof sound !== "undefined")
         {
-            source.buffer = sound;               // tell the source which sound to play
-            source.connect(context.destination); // connect the source to the context's destination (the speakers)
-            source.start(0);                     // play the source now
-            // note: on older systems, may have to use deprecated noteOn(time);
+            sound.play();
         }
     };
     
     // public API
     return {
-        loading: loading
+        loading: loading,
+        init: init
     };
 })();
 
 // Initializing once the page is ready.
-window.addEventListener("load", View.loading);
+document.addEventListener("deviceready", View.init, false);
