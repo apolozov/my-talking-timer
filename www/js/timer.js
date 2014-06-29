@@ -97,10 +97,188 @@ var Timer = (function()
     };
 })();
 
-var View = (function() 
+
+var CordovaPlayer = (function() 
 {
     var sounds = [];
+    var playing = null;
+    
+    var init = function()
+    {
+    }
+    
+    /**
+     * Load audio file from given url and put it into sounds sparse array.
+     * @param {String} file Sound file to load
+     * @param {Integer} index Where to put the sound.
+     */
+    var loadSound = function(file, index)
+    {
+        var url = "/android_asset/www/" + file;
+        var media = new Media(url,
+            function() {
+                if (playing === media) playing = null;
+                console.log("played " + url);
+            },
+            function(e) {
+                if (playing === media) playing = null;
+                console.log("Failed to play " + url + ": " + e);
+            }
+        );
+        sounds[index] = media;
+    };
+    
+    /**
+     * Stop the ticking
+     * 
+     * @returns {undefined}
+     */
+    var stop = function()
+    {
+        if (playing !== null)
+        {
+            playing.stop();
+            console.log("stopped sound " + playing);
+        }
+        Timer.stop();
+    };
+    
+    /**
+     * Play the sound by index.
+     * 
+     * @param {Integer} index index of the sound to play.
+     * @returns {undefined}
+     */
+    var playSound = function(index)
+    {
+        var sound = sounds[index];
+        if (typeof sound !== "undefined")
+        {
+            if (playing === null)
+            {
+                playing = sound;
+                sound.play();
+            }
+            else
+            {
+                console.log("skipping sound for " + index + ": already playing something");
+            }
+        }
+    };
+    
+    // public API
+    return {
+        init: init,
+        load: loadSound,
+        play: playSound,
+        stop: stop
+    };
+})();
+
+var WebAudioPlayer = (function() 
+{
+    var sounds = [];
+    var context = null;
+    var playing = null;
+    
+    var init = function()
+    {
+        context = new AudioContext();
+    }
+    
+    /**
+     * Load audio file from given url and put it into sounds sparse array.
+     * @param {String} file Sound file to load
+     * @param {Integer} index Where to put the sound.
+     */
+    var loadSound = function(file, index)
+    {
+        var request = new XMLHttpRequest();
+        request.open('GET', file, true);
+        request.responseType = 'arraybuffer';
+
+        // Decode asynchronously
+        request.onload = function() {
+          context.decodeAudioData(request.response, function(buffer) {
+            sounds[index] = buffer;
+          },
+          function()
+          {
+              console.log("Unable to decode " + file);
+          }
+          );
+        };
+        request.send();
+    };
+    
+    /**
+     * Stop the sound if playing
+     */
+    var stop = function()
+    {
+        console.log("Don't know how to stop sound yet");
+    };
+    
+    /**
+     * Play the sound by index.
+     * 
+     * @param {Integer} index index of the sound to play.
+     * @returns {undefined}
+     */
+    var playSound = function(index)
+    {
+        var source = context.createBufferSource(); // creates a sound source
+        var sound = sounds[index];
+        if (typeof sound !== "undefined")
+        {
+            source.buffer = sound; // tell the source which sound to play
+            source.connect(context.destination); // connect the source to the context's destination (the speakers)
+            source.start(0); // play the source now
+            // note: on older systems, may have to use deprecated noteOn(time);
+        }
+    };
+    
+    // public API
+    return {
+        init: init,
+        load: loadSound,
+        play: playSound,
+        stop: stop
+    };
+})();
+
+var View = (function() 
+{
     var inputTime = 0;
+    var player = null;
+    if (cordova || PhoneGap || phonegap)
+    {
+        player = CordovaPlayer;
+    }
+    else if (window.AudioContext || window.webkitAudioContext)
+    {
+        player = WebAudioPlayer;
+    }
+    else
+    {
+        //Dummy player
+        player = {
+            init: function() {
+                console.log("dummy init");
+            },
+            load: function(file, index) {
+                console.log("dummy load " + file + ", " + index);
+            },
+            play: function(index) {
+                console.log("dummy play " + index);
+            },
+            stop: function() {
+                console.log("dummy stop");
+            }
+        };
+    }
+    
+    player.init();
     
     /**
      * Called when HTML us _probably_ loaded.
@@ -123,40 +301,25 @@ var View = (function()
     var init = function()
     {
         console.log("Initializing view");
-        Timer.addCallback(timerCallback);
+        Timer.addCallback(tick);
         document.getElementById("start").onclick = start;
         document.getElementById("stop").onclick = stop;
         document.getElementById("time-input").onchange = start;
         
-        loadSound("/android_asset/www/sound/0.ogg", 0);
-        loadSound("/android_asset/www/sound/1.ogg", 1);
-        loadSound("/android_asset/www/sound/2.ogg", 2);
-        loadSound("/android_asset/www/sound/3.ogg", 3);
+        player.load("sound/0.ogg", 0);
+        player.load("sound/1.ogg", 1);
+        player.load("sound/2.ogg", 2);
+        player.load("sound/3.ogg", 3);
     };
-    
+        
     /**
-     * Load audio file from given url and put it into sounds sparse array.
-     * @param {type} url Sound file to load
-     * @param {type} index Where to put the sound.
+     * This method gets called every second
+     * @param {type} second
      */
-    var loadSound = function(url, index)
-    {
-        var media = new Media(url,
-        function() {
-            console.log("played " + url);
-        },
-        function() {
-            console.log("Filed to play " + url);
-        }
-        );
-        sounds[index] = media;
-    };
-    
-    
-    var timerCallback = function(second)
+    var tick = function(second)
     {
         render(second);
-        playSound(second);
+        player.play(second);
     };
     
     /**
@@ -176,7 +339,11 @@ var View = (function()
      */
     var start = function() 
     {
-        if (! Timer.isRunning())
+        if (Timer.isRunning())
+        {
+            console.log("Already started");
+        }
+        else
         {
             console.log("Starting");
             inputTime = getInputTime();
@@ -191,18 +358,10 @@ var View = (function()
      */
     var stop = function()
     {
+        player.stop();
         if (Timer.isRunning())
         {
             Timer.stop();
-            //Stopping all sounds
-            for (var i in sounds)
-            {
-                var sound = sounds[i];
-                //TODO: Stop the sound.
-                
-                // Rewinding for future
-                sound.currentTime = 0;
-            }
         }
         else
         {
@@ -222,21 +381,12 @@ var View = (function()
             document.getElementById("seconds-left").textContent = second;
     };
     
-    var playSound = function(second)
-    {
-        var sound = sounds[second];
-        if (typeof sound !== "undefined")
-        {
-            sound.play();
-        }
-    };
-    
     // public API
     return {
         loading: loading,
         init: init
     };
 })();
-
 // Initializing once the page is ready.
 document.addEventListener("deviceready", View.init, false);
+window.addEventListener("load", View.loading(), false);
