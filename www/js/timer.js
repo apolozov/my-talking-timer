@@ -60,7 +60,7 @@ var Timer = (function()
 
             var second = Math.round(msleft/1000);
             console.log("Second " + second);
-            if (callback !== undefined && callback !== null)
+            if (typeof callback !== "undefined" && callback !== null)
             {
                 callback.call(this, second);
             }
@@ -105,7 +105,7 @@ var CordovaPlayer = (function()
     
     var init = function()
     {
-    }
+    };
     
     /**
      * Load audio file from given url and put it into sounds sparse array.
@@ -184,7 +184,7 @@ var WebAudioPlayer = (function()
     var init = function()
     {
         context = new AudioContext();
-    }
+    };
     
     /**
      * Load audio file from given url and put it into sounds sparse array.
@@ -251,7 +251,10 @@ var View = (function()
 {
     var inputTime = 0;
     var player = null;
-    if (cordova || PhoneGap || phonegap)
+    // Choose player for the environment
+    if (typeof cordova !== "undefined" ||
+            typeof PhoneGap !== "undefined" ||
+            typeof phonegap !== "undefined")
     {
         player = CordovaPlayer;
     }
@@ -304,12 +307,24 @@ var View = (function()
         Timer.addCallback(tick);
         document.getElementById("start").onclick = start;
         document.getElementById("stop").onclick = stop;
-        document.getElementById("time-input").onchange = start;
+        //document.getElementById("time-input").onchange = start;
         
         player.load("sound/0.ogg", 0);
         player.load("sound/1.ogg", 1);
         player.load("sound/2.ogg", 2);
         player.load("sound/3.ogg", 3);
+        player.load("sound/4.ogg", 4);
+        player.load("sound/5.ogg", 5);
+        player.load("sound/6.ogg", 6);
+        player.load("sound/7.ogg", 7);
+        player.load("sound/8.ogg", 8);
+        player.load("sound/9.ogg", 9);
+        player.load("sound/10.ogg", 10);
+        player.load("sound/30.ogg", 30);
+        player.load("sound/1m.ogg", 60);
+        player.load("sound/5m.ogg", 300);
+        player.load("sound/15m.ogg", 900);
+        player.load("sound/30m.ogg", 1800);
     };
         
     /**
@@ -330,8 +345,34 @@ var View = (function()
      */
     var getInputTime = function()
     {
+        var time = 0;
         var timeString = document.getElementById("time-input").value;
-        return timeString * 1;
+        var tlen = timeString.length;
+        if (tlen > 4)
+        {
+            var hourString = timeString.substring(tlen - 6, tlen - 4);
+            var hours = parseInt(hourString);
+            if (!isNaN(hours))
+            {
+                time += hours * 3600;
+            }
+        }
+        if (tlen > 2)
+        {
+            var minuteString = timeString.substring(tlen - 4, tlen -2);
+            var minutes = parseInt(minuteString);
+            if (!isNaN(minutes))
+            {
+                time += minutes * 60;
+            }
+        }
+        var secondString = timeString.substring(tlen - 2, tlen);
+        var seconds = parseInt(secondString);
+        if (!isNaN(seconds))
+        {
+            time += seconds;
+        }
+        return time;
     };
     
     /**
@@ -347,7 +388,14 @@ var View = (function()
         {
             console.log("Starting");
             inputTime = getInputTime();
-            Timer.start(inputTime);
+            if (isNaN(inputTime))
+            {
+                console.log("invalid time!");
+            }
+            else
+            {
+                Timer.start(inputTime);
+            }
         }
     };
     
@@ -378,7 +426,18 @@ var View = (function()
      */
     var render = function(second) 
     {
-            document.getElementById("seconds-left").textContent = second;
+        var seconds = second % 60;
+        var minutes = Math.floor(second / 60) % 60;
+        var hours = Math.floor(second / 3600);
+        document.getElementById("seconds-left").textContent = padNum(seconds, 2);
+        document.getElementById("minutes-left").textContent = padNum(minutes, 2);
+        document.getElementById("hours-left").textContent = padNum(hours, 2);
+    };
+    
+    var padNum = function(num, size)
+    {
+        var s = "0" + num;
+        return s.substr(s.length-size);
     };
     
     // public API
