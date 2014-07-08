@@ -154,15 +154,17 @@ var CordovaPlayer = (function()
         var sound = sounds[index];
         if (typeof sound !== "undefined")
         {
-            if (playing === null)
-            {
+//Note: when sound goes through bluetooth - the start and end of playing get delayed.
+//So, we do allow overlap for sounds for now.
+//            if (playing === null)
+//            {
                 playing = sound;
                 sound.play();
-            }
-            else
-            {
-                console.log("skipping sound for " + index + ": already playing something");
-            }
+//            }
+//            else
+//            {
+//                console.log("skipping sound for " + index + ": already playing something");
+//            }
         }
     };
     
@@ -323,6 +325,7 @@ var View = (function()
         player.load("sound/30.ogg", 30);
         player.load("sound/1m.ogg", 60);
         player.load("sound/5m.ogg", 300);
+        player.load("sound/10m.ogg", 600);
         player.load("sound/15m.ogg", 900);
         player.load("sound/30m.ogg", 1800);
     };
