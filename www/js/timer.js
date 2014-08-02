@@ -324,6 +324,7 @@ var View = (function()
         player.load("sound/10.ogg", 10);
         player.load("sound/30.ogg", 30);
         player.load("sound/1m.ogg", 60);
+        player.load("sound/3m.ogg", 180);
         player.load("sound/5m.ogg", 300);
         player.load("sound/10m.ogg", 600);
         player.load("sound/15m.ogg", 900);
